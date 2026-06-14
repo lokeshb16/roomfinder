@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RoomFinder Pro - Live Geospatial Portal</title>
     
-    <!-- Leaflet Engine & Modern Fonts -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
@@ -68,7 +67,7 @@
         }
         .auth-toggle span { color: var(--brand-primary); font-weight: 600; }
 
-        /* MAIN APP INTERFACE */
+        /* MAIN APPLICATION SCREEN */
         #app-interface {
             display: none; width: 100%; height: 100%;
         }
@@ -123,13 +122,6 @@
             font-weight: 700; border: none; border-radius: 12px; cursor: pointer; margin-top: 25px;
         }
 
-        .scratch-box {
-            position: relative; width: 220px; height: 55px; margin: 12px auto;
-            background: #fff; border: 2px dashed #e2e8f0; display: flex;
-            border-radius: 10px; overflow: hidden; align-items: center; justify-content: center;
-        }
-        .scratch-canvas { position: absolute; top: 0; left: 0; cursor: pointer; }
-
         .app-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);
@@ -144,7 +136,6 @@
 </head>
 <body>
 
-    <!-- 1. AUTH SCREEN PANEL -->
     <div id="auth-screen">
         <div class="auth-container">
             <h2 id="auth-title">Welcome Back</h2>
@@ -162,7 +153,6 @@
         </div>
     </div>
 
-    <!-- 2. MAIN APP INTERFACE -->
     <div id="app-interface">
         <div id="header-bar">
             <div class="header-left">
@@ -182,7 +172,6 @@
 
         <div id="map"></div>
 
-        <!-- SIDEBAR -->
         <div id="sidebar">
             <button class="sidebar-close-btn" onclick="closeSidebar()">✕</button>
             <h3 style="margin:0 0 6px 0; font-size:22px; font-weight:800;">List Your Room 🎉</h3>
@@ -208,7 +197,6 @@
         </div>
     </div>
 
-    <!-- DETAILS MODAL -->
     <div id="details-modal" class="app-modal" onclick="closeModal('details-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <button class="modal-close-btn" onclick="closeModal('details-modal')">✕</button>
@@ -237,13 +225,8 @@
         let authToken = localStorage.getItem('token') || null;
 
         window.onload = function() {
-            pingServerToWakeUp(); // Poke the server immediately on load
             if (authToken) { bypassAuthScreen(); }
         };
-
-        async function pingServerToWakeUp() {
-            try { await fetch(`${API_BASE_URL}/api/stats`); } catch(e){}
-        }
 
         function toggleAuthMode() {
             isSignUpMode = !isSignUpMode;
@@ -260,22 +243,25 @@
 
             const username = document.getElementById('auth_username').value;
             const password = document.getElementById('auth_password').value;
-            const endpoint = isSignUpMode ? "/api/auth/signup" : "/api/auth/login";
 
             try {
                 let response;
                 if (isSignUpMode) {
-                    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    // Sign up pipeline logic
+                    response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username: username, password: password })
                     });
                 } else {
-                    let formBody = `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
-                    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    // Standard explicit login logic using raw FormData body structure
+                    let loginData = new FormData();
+                    loginData.append('username', username);
+                    loginData.append('password', password);
+
+                    response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: formBody
+                        body: loginData  // Pura framework structure standard layout standard input form pe shift kar diya
                     });
                 }
 
@@ -283,7 +269,7 @@
 
                 if (response.ok) {
                     if (isSignUpMode) {
-                        alert("Signup successful! Now enter details again to Sign In.");
+                        alert("Signup successful! Changing screen mode to Sign In now.");
                         toggleAuthMode();
                     } else if (data.access_token) {
                         authToken = data.access_token;
@@ -291,10 +277,10 @@
                         bypassAuthScreen();
                     }
                 } else {
-                    alert(data.detail || "Invalid Credentials / User not registered yet.");
+                    alert(data.detail || "Authentication engine threw an error. User might not exist.");
                 }
             } catch (err) {
-                alert("Server waking up from cold-start! Please press OK and click Sign In again in 5 seconds.");
+                alert("Server is waking up from a deep sleep (Cold Start). Please click OK and press Sign In again.");
             } finally {
                 btn.innerText = isSignUpMode ? "Sign Up" : "Sign In";
                 btn.disabled = false;
