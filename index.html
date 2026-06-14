@@ -17,7 +17,6 @@
             --text-muted: #64748b;
             --glass-bg: rgba(255, 255, 255, 0.85);
             --radius-lg: 16px;
-            --radius-sm: 8px;
             --smooth-shadow: 0 10px 30px -5px rgba(2, 6, 23, 0.1), 0 4px 12px -4px rgba(2, 6, 23, 0.05);
         }
 
@@ -35,7 +34,6 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
             z-index: 99999; display: flex; align-items: center; justify-content: center;
-            transition: opacity 0.5s ease;
         }
 
         .auth-container {
@@ -69,18 +67,17 @@
         }
         .auth-toggle span { color: var(--brand-primary); font-weight: 600; }
 
-        /* MAIN APP INTERFACE (HIDDEN BY DEFAULT UNTIL LOGIN) */
+        /* MAIN APP INTERFACE (HIDDEN UNTIL LOGIN) */
         #app-interface {
             display: none; width: 100%; height: 100%;
         }
 
         #map { flex: 1; height: 100%; z-index: 1; }
 
-        /* NAVBAR TOP */
+        /* HEADER NAVBAR */
         #header-bar {
             position: absolute; top: 20px; left: 20px; right: 20px; z-index: 1000;
-            background: var(--glass-bg); backdrop-filter: blur(12px);
-            padding: 12px 24px; border-radius: 40px;
+            background: white; padding: 12px 24px; border-radius: 40px;
             box-shadow: var(--smooth-shadow); display: flex; justify-content: space-between; align-items: center;
             border: 1px solid rgba(226, 232, 240, 0.8);
         }
@@ -93,18 +90,18 @@
             border-radius: 30px; font-size: 12px; font-weight: 700;
         }
 
-        /* REGISTER PROPERTY TRIGGER */
+        /* REGISTER PROPERTY BUTTON */
         #sidebar-toggle-btn {
             position: absolute; bottom: 30px; right: 30px; z-index: 1000;
             background: var(--brand-primary); color: white; border: none;
             padding: 16px 28px; border-radius: 40px; font-weight: 700;
             box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4); cursor: pointer;
             display: flex; align-items: center; gap: 8px; font-family: inherit; font-size: 15px;
-            transition: all 0.25s ease;
+            transition: all 0.2s ease;
         }
         #sidebar-toggle-btn:hover { background: var(--brand-primary-hover); transform: translateY(-2px); }
 
-        /* REGISTRATION SIDEBAR PANEL */
+        /* SIDEBAR PANEL */
         #sidebar {
             width: 400px; height: 100%; background: white;
             position: absolute; right: -400px; top: 0; z-index: 1001;
@@ -125,7 +122,7 @@
         form input, form textarea {
             width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1;
             border-radius: 10px; box-sizing: border-box; margin-top: 6px; font-size: 14px;
-            font-family: inherit; transition: border 0.2s;
+            font-family: inherit;
         }
         form input:focus, form textarea:focus { outline: none; border-color: var(--brand-primary); }
         
@@ -134,9 +131,8 @@
             font-weight: 700; border: none; border-radius: 12px; cursor: pointer; margin-top: 25px;
             font-family: inherit; font-size: 15px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
         }
-        .publish-btn:hover { background: var(--brand-primary-hover); }
 
-        /* SCRATCH CARD SYSTEM */
+        /* SCRATCH SYSTEM */
         .scratch-box {
             position: relative; width: 220px; height: 55px; margin: 12px auto;
             background: #fff; border: 2px dashed #e2e8f0; display: flex;
@@ -145,19 +141,17 @@
         }
         .scratch-canvas { position: absolute; top: 0; left: 0; cursor: pointer; }
 
-        /* MODAL DIALOG POPUP */
+        /* MODAL POPUP */
         .app-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);
             z-index: 10005; display: none; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.3s ease;
         }
-        .app-modal.show { display: flex; opacity: 1; }
+        .app-modal.show { display: flex; }
         
         .modal-content {
             background: white; width: 600px; max-width: 92%; border-radius: 24px;
-            overflow: hidden; box-shadow: 0 30px 60px -15px rgba(0,0,0,0.3);
-            position: relative; display: flex; flex-direction: column;
+            overflow: hidden; position: relative; display: flex; flex-direction: column;
         }
 
         .modal-close-btn {
@@ -165,7 +159,7 @@
             color: var(--bg-dark); border: none; width: 36px; height: 36px; border-radius: 50%;
             font-size: 14px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center;
         }
-        .modal-hero-img { width: 100%; height: 300px; object-fit: cover; background: #cbd5e1; }
+        .modal-hero-img { width: 100%; height: 300px; object-fit: cover; }
         .modal-body { padding: 30px; }
         .modal-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .modal-rent-tag { font-size: 28px; font-weight: 800; color: #047857; }
@@ -276,6 +270,7 @@
         let authToken = localStorage.getItem('token') || null;
 
         window.onload = function() {
+            // Auto login logic if token already exists
             if (authToken) {
                 bypassAuthScreen();
             }
@@ -293,47 +288,61 @@
             e.preventDefault();
             const username = document.getElementById('auth_username').value;
             const password = document.getElementById('auth_password').value;
+            
+            // Backend endpoint check
             const endpoint = isSignUpMode ? "/api/auth/signup" : "/api/auth/login";
 
             try {
-                // Backend requires form-data / URL encoded form for standard OAuth2 layout
-                let details = { 'username': username, 'password': password };
-                let formBody = [];
-                for (let property in details) {
-                    let encodedKey = encodeURIComponent(property);
-                    let encodedValue = encodeURIComponent(details[property]);
-                    formBody.push(encodedKey + "=" + encodedValue);
-                }
-                formBody = formBody.join("&");
+                let response;
+                
+                if (isSignUpMode) {
+                    // Signup expects structured JSON body
+                    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: username, password: password })
+                    });
+                } else {
+                    // OAuth2 Login expects URL encoded body form data
+                    let details = { 'username': username, 'password': password };
+                    let formBody = [];
+                    for (let property in details) {
+                        formBody.push(encodeURIComponent(property) + "=" + encodeURIComponent(details[property]));
+                    }
+                    formBody = formBody.join("&");
 
-                let response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-                    body: formBody
-                });
+                    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: formBody
+                    });
+                }
 
                 let data = await response.json();
-                if (response.ok && data.access_token) {
-                    authToken = data.access_token;
-                    localStorage.setItem('token', authToken);
-                    bypassAuthScreen();
+
+                if (response.ok) {
+                    if (isSignUpMode) {
+                        alert("Account created successfully! Now switching to Sign In.");
+                        toggleAuthMode();
+                    } else if (data.access_token) {
+                        authToken = data.access_token;
+                        localStorage.setItem('token', authToken);
+                        bypassAuthScreen();
+                    }
                 } else {
-                    alert(data.detail || "Authentication pipeline transaction failed.");
+                    alert(data.detail || "Authentication process failed.");
                 }
             } catch (err) {
-                alert("Server interface engine breakdown. Waking up instance...");
+                alert("Server is booting up or offline. Please wait 10 seconds and try again.");
             }
         }
 
         function bypassAuthScreen() {
-            document.getElementById('auth-screen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('app-interface').style.display = 'flex';
-                initializeSystemMap();
-                loadStats();
-                fetchNearbyRooms();
-            }, 500);
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('app-interface').style.display = 'flex';
+            initializeSystemMap();
+            loadStats();
+            fetchNearbyRooms();
         }
 
         function handleLogout() {
@@ -367,7 +376,7 @@
                 let data = await response.json();
                 document.getElementById('free-badge').innerText = `🎉 ${data.remaining_free_slots} Free Slots Left!`;
             } catch (err) { 
-                document.getElementById('free-badge').innerText = "⚠️ Server Offline";
+                document.getElementById('free-badge').innerText = "⚠️ Server Booting...";
             }
         }
 
@@ -513,7 +522,7 @@
         function closeModal(id) {
             const modal = document.getElementById(id);
             modal.classList.remove('show');
-            setTimeout(() => modal.style.display = 'none', 250);
+            modal.style.display = 'none';
         }
     </script>
 </body>
