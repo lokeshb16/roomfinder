@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RoomFinder Pro - Live Geospatial Portal</title>
     
+    <!-- Leaflet Engine & Modern Fonts -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
@@ -67,14 +68,13 @@
         }
         .auth-toggle span { color: var(--brand-primary); font-weight: 600; }
 
-        /* MAIN APP INTERFACE (HIDDEN UNTIL LOGIN) */
+        /* MAIN APP INTERFACE */
         #app-interface {
             display: none; width: 100%; height: 100%;
         }
 
         #map { flex: 1; height: 100%; z-index: 1; }
 
-        /* HEADER NAVBAR */
         #header-bar {
             position: absolute; top: 20px; left: 20px; right: 20px; z-index: 1000;
             background: white; padding: 12px 24px; border-radius: 40px;
@@ -90,93 +90,68 @@
             border-radius: 30px; font-size: 12px; font-weight: 700;
         }
 
-        /* REGISTER PROPERTY BUTTON */
         #sidebar-toggle-btn {
             position: absolute; bottom: 30px; right: 30px; z-index: 1000;
             background: var(--brand-primary); color: white; border: none;
             padding: 16px 28px; border-radius: 40px; font-weight: 700;
             box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4); cursor: pointer;
             display: flex; align-items: center; gap: 8px; font-family: inherit; font-size: 15px;
-            transition: all 0.2s ease;
         }
-        #sidebar-toggle-btn:hover { background: var(--brand-primary-hover); transform: translateY(-2px); }
 
-        /* SIDEBAR PANEL */
         #sidebar {
             width: 400px; height: 100%; background: white;
             position: absolute; right: -400px; top: 0; z-index: 1001;
             box-shadow: -10px 0 40px rgba(15, 23, 42, 0.08);
             padding: 100px 30px 30px 30px; box-sizing: border-box;
             overflow-y: auto; transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            border-left: 1px solid #f1f5f9;
         }
         #sidebar.open { right: 0; }
 
         .sidebar-close-btn {
             position: absolute; top: 105px; right: 30px; background: #f1f5f9;
             border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
-            font-weight: bold; color: var(--text-muted);
         }
 
         form label { font-size: 13px; font-weight: 600; color: #475569; display: block; margin-top: 14px; }
         form input, form textarea {
             width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1;
             border-radius: 10px; box-sizing: border-box; margin-top: 6px; font-size: 14px;
-            font-family: inherit;
         }
-        form input:focus, form textarea:focus { outline: none; border-color: var(--brand-primary); }
         
         .publish-btn {
             width: 100%; padding: 14px; background: var(--brand-primary); color: white;
             font-weight: 700; border: none; border-radius: 12px; cursor: pointer; margin-top: 25px;
-            font-family: inherit; font-size: 15px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
         }
 
-        /* SCRATCH SYSTEM */
         .scratch-box {
             position: relative; width: 220px; height: 55px; margin: 12px auto;
             background: #fff; border: 2px dashed #e2e8f0; display: flex;
-            border-radius: 10px; overflow: hidden;
-            align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: var(--brand-primary);
+            border-radius: 10px; overflow: hidden; align-items: center; justify-content: center;
         }
         .scratch-canvas { position: absolute; top: 0; left: 0; cursor: pointer; }
 
-        /* MODAL POPUP */
         .app-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);
             z-index: 10005; display: none; align-items: center; justify-content: center;
         }
         .app-modal.show { display: flex; }
-        
-        .modal-content {
-            background: white; width: 600px; max-width: 92%; border-radius: 24px;
-            overflow: hidden; position: relative; display: flex; flex-direction: column;
-        }
-
-        .modal-close-btn {
-            position: absolute; top: 20px; right: 20px; background: #f1f5f9;
-            color: var(--bg-dark); border: none; width: 36px; height: 36px; border-radius: 50%;
-            font-size: 14px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center;
-        }
+        .modal-content { background: white; width: 600px; max-width: 92%; border-radius: 24px; overflow: hidden; position: relative; }
+        .modal-close-btn { position: absolute; top: 20px; right: 20px; background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; }
         .modal-hero-img { width: 100%; height: 300px; object-fit: cover; }
         .modal-body { padding: 30px; }
-        .modal-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .modal-rent-tag { font-size: 28px; font-weight: 800; color: #047857; }
-        .modal-desc { color: #475569; font-size: 15px; line-height: 1.6; background: #f8fafc; padding: 15px; border-radius: 12px; }
-
-        .leaflet-popup-content-wrapper { border-radius: 16px; padding: 6px; box-shadow: var(--smooth-shadow); }
     </style>
 </head>
 <body>
 
+    <!-- 1. AUTH SCREEN PANEL -->
     <div id="auth-screen">
         <div class="auth-container">
-            <h2 id="auth-title" style="margin: 0 0 8px 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">Welcome Back</h2>
-            <p id="auth-subtitle" style="margin: 0 0 24px 0; font-size: 14px; color: #94a3b8;">Sign in to access your geospatial room panel</p>
+            <h2 id="auth-title">Welcome Back</h2>
+            <p id="auth-subtitle">Sign in to access your room panel</p>
             
             <form id="authForm" onsubmit="handleAuthSubmit(event)">
-                <input type="text" id="auth_username" class="auth-input" required placeholder="Username">
+                <input type="text" id="auth_username" class="auth-input" required placeholder="Username or Phone">
                 <input type="password" id="auth_password" class="auth-input" required placeholder="Password">
                 <button type="submit" id="auth-submit-btn" class="auth-btn">Sign In</button>
             </form>
@@ -187,16 +162,17 @@
         </div>
     </div>
 
+    <!-- 2. MAIN APP INTERFACE -->
     <div id="app-interface">
         <div id="header-bar">
             <div class="header-left">
-                <strong style="font-size: 18px; font-weight: 800; color: var(--bg-dark);">RoomFinder Pro 🏠</strong>
-                <span id="free-badge">Checking Slots...</span>
+                <strong style="font-size: 18px; color: var(--bg-dark);">RoomFinder Pro 🏠</strong>
+                <span id="free-badge">Connecting Backend...</span>
             </div>
             <div class="header-right">
-                <input type="number" id="budgetInput" placeholder="Max Rent (₹)" style="padding: 8px 16px; border-radius: 30px; border: 1px solid #cbd5e1; width: 120px; font-family: inherit; font-size: 13px; text-align: center; outline:none;">
-                <button onclick="fetchNearbyRooms()" style="background: #2563eb; color: white; border: none; padding: 8px 18px; border-radius: 30px; cursor: pointer; font-weight: 700; font-family: inherit; font-size: 13px;">Filter</button>
-                <button onclick="handleLogout()" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; font-weight: 700; font-family: inherit; font-size: 13px;">Logout</button>
+                <input type="number" id="budgetInput" placeholder="Max Rent (₹)" style="padding: 8px 14px; border-radius: 30px; border: 1px solid #cbd5e1; width: 110px; text-align: center; outline:none;">
+                <button onclick="fetchNearbyRooms()" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; font-weight:700;">Filter</button>
+                <button onclick="handleLogout()" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; font-weight:700;">Logout</button>
             </div>
         </div>
 
@@ -206,53 +182,44 @@
 
         <div id="map"></div>
 
+        <!-- SIDEBAR -->
         <div id="sidebar">
             <button class="sidebar-close-btn" onclick="closeSidebar()">✕</button>
-            <h3 style="margin:0 0 6px 0; font-size:22px; font-weight:800; color:var(--bg-dark);">List Your Room 🎉</h3>
-            <p style="font-size: 13px; color: var(--text-muted); margin:0 0 20px 0;">Click anywhere on the map first to fetch node coordinates automatically.</p>
+            <h3 style="margin:0 0 6px 0; font-size:22px; font-weight:800;">List Your Room 🎉</h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin:0 0 20px 0;">Click anywhere on the map to autofill coordinates.</p>
             
             <form id="roomForm" onsubmit="submitRoom(event)">
                 <label>Landlord Name</label>
                 <input type="text" id="form_name" required placeholder="e.g. Rajesh Kumar">
-                
                 <label>Phone Number</label>
                 <input type="tel" id="form_phone" required placeholder="e.g. 9876543210">
-                
                 <label>Monthly Rent (₹)</label>
                 <input type="number" id="form_rent" required placeholder="e.g. 5000">
-                
                 <label>Description</label>
-                <textarea id="form_desc" rows="3" required placeholder="Water details, current layout structure info..."></textarea>
-                
+                <textarea id="form_desc" rows="3" required></textarea>
                 <label>Upload Room Image</label>
-                <input type="file" id="form_files" accept="image/*" required style="border:1px dashed #cbd5e1; background:#f8fafc; padding:12px; border-radius:10px; cursor:pointer;">
-                
-                <label>Latitude Pin Location</label>
-                <input type="text" id="form_lat" readonly required style="background: #f1f5f9; color: var(--text-muted); font-weight: 600;">
-                
-                <label>Longitude Pin Location</label>
-                <input type="text" id="form_lng" readonly required style="background: #f1f5f9; color: var(--text-muted); font-weight: 600;">
-                
-                <button type="submit" class="publish-btn">Publish Property Now</button>
+                <input type="file" id="form_files" accept="image/*" required>
+                <label>Latitude</label>
+                <input type="text" id="form_lat" readonly required>
+                <label>Longitude</label>
+                <input type="text" id="form_lng" readonly required>
+                <button type="submit" class="publish-btn">Publish Now</button>
             </form>
         </div>
     </div>
 
+    <!-- DETAILS MODAL -->
     <div id="details-modal" class="app-modal" onclick="closeModal('details-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <button class="modal-close-btn" onclick="closeModal('details-modal')">✕</button>
-            <img id="modal-img" class="modal-hero-img" src="" alt="Property View">
+            <img id="modal-img" class="modal-hero-img" src="" alt="Room">
             <div class="modal-body">
-                <div class="modal-header-flex">
-                    <h2 style="margin:0; color:var(--bg-dark); font-weight:800; font-size:22px;">Verified Property Space</h2>
-                    <div id="modal-rent" class="modal-rent-tag">₹0/mo</div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 style="margin:0; font-size:22px;">Verified Space</h2>
+                    <div id="modal-rent" style="font-size:24px; font-weight:800; color:#047857;">₹0</div>
                 </div>
-                <p id="modal-desc" class="modal-desc">Loading metadata...</p>
-                
-                <div style="background: #f8fafc; padding: 20px; border-radius: 16px; text-align: center; border: 1px dashed #cbd5e1; margin-top:20px;">
-                    <h4 style="margin: 0 0 12px 0; color: var(--bg-dark); font-weight:700;">🔒 Secure Landlord Escrow</h4>
-                    <div id="modal-contact-wrapper"></div>
-                </div>
+                <p id="modal-desc" style="background:#f8fafc; padding:15px; border-radius:12px; margin-top:15px;"></p>
+                <div style="text-align:center; margin-top:20px;" id="modal-contact-wrapper"></div>
             </div>
         </div>
     </div>
@@ -270,47 +237,41 @@
         let authToken = localStorage.getItem('token') || null;
 
         window.onload = function() {
-            // Auto login logic if token already exists
-            if (authToken) {
-                bypassAuthScreen();
-            }
+            pingServerToWakeUp(); // Poke the server immediately on load
+            if (authToken) { bypassAuthScreen(); }
         };
+
+        async function pingServerToWakeUp() {
+            try { await fetch(`${API_BASE_URL}/api/stats`); } catch(e){}
+        }
 
         function toggleAuthMode() {
             isSignUpMode = !isSignUpMode;
             document.getElementById('auth-title').innerText = isSignUpMode ? "Create Account" : "Welcome Back";
-            document.getElementById('auth-subtitle').innerText = isSignUpMode ? "Sign up to register free rooms" : "Sign in to access your geospatial room panel";
             document.getElementById('auth-submit-btn').innerText = isSignUpMode ? "Sign Up" : "Sign In";
             document.getElementById('auth-toggle-text').innerText = isSignUpMode ? "Sign In" : "Sign Up";
         }
 
         async function handleAuthSubmit(e) {
             e.preventDefault();
+            const btn = document.getElementById('auth-submit-btn');
+            btn.innerText = "Processing... Please wait...";
+            btn.disabled = true;
+
             const username = document.getElementById('auth_username').value;
             const password = document.getElementById('auth_password').value;
-            
-            // Backend endpoint check
             const endpoint = isSignUpMode ? "/api/auth/signup" : "/api/auth/login";
 
             try {
                 let response;
-                
                 if (isSignUpMode) {
-                    // Signup expects structured JSON body
                     response = await fetch(`${API_BASE_URL}${endpoint}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username: username, password: password })
                     });
                 } else {
-                    // OAuth2 Login expects URL encoded body form data
-                    let details = { 'username': username, 'password': password };
-                    let formBody = [];
-                    for (let property in details) {
-                        formBody.push(encodeURIComponent(property) + "=" + encodeURIComponent(details[property]));
-                    }
-                    formBody = formBody.join("&");
-
+                    let formBody = `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
                     response = await fetch(`${API_BASE_URL}${endpoint}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -322,7 +283,7 @@
 
                 if (response.ok) {
                     if (isSignUpMode) {
-                        alert("Account created successfully! Now switching to Sign In.");
+                        alert("Signup successful! Now enter details again to Sign In.");
                         toggleAuthMode();
                     } else if (data.access_token) {
                         authToken = data.access_token;
@@ -330,10 +291,13 @@
                         bypassAuthScreen();
                     }
                 } else {
-                    alert(data.detail || "Authentication process failed.");
+                    alert(data.detail || "Invalid Credentials / User not registered yet.");
                 }
             } catch (err) {
-                alert("Server is booting up or offline. Please wait 10 seconds and try again.");
+                alert("Server waking up from cold-start! Please press OK and click Sign In again in 5 seconds.");
+            } finally {
+                btn.innerText = isSignUpMode ? "Sign Up" : "Sign In";
+                btn.disabled = false;
             }
         }
 
@@ -345,24 +309,14 @@
             fetchNearbyRooms();
         }
 
-        function handleLogout() {
-            localStorage.clear();
-            location.reload();
-        }
-
+        function handleLogout() { localStorage.clear(); location.reload(); }
         function openSidebar() { document.getElementById('sidebar').classList.add('open'); }
         function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); }
 
         function initializeSystemMap() {
             if (map) return;
             map = L.map('map', { zoomControl: false }).setView([NAGPUR_LAT, NAGPUR_LNG], 13);
-            L.control.zoom({ position: 'bottomleft' }).addTo(map);
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '© OpenStreetMap'
-            }).addTo(map);
-
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
             map.on('click', function(e) {
                 document.getElementById('form_lat').value = e.latlng.lat.toFixed(6);
                 document.getElementById('form_lng').value = e.latlng.lng.toFixed(6);
@@ -372,12 +326,10 @@
 
         async function loadStats() {
             try {
-                let response = await fetch(`${API_BASE_URL}/api/stats`);
-                let data = await response.json();
+                let res = await fetch(`${API_BASE_URL}/api/stats`);
+                let data = await res.json();
                 document.getElementById('free-badge').innerText = `🎉 ${data.remaining_free_slots} Free Slots Left!`;
-            } catch (err) { 
-                document.getElementById('free-badge').innerText = "⚠️ Server Booting...";
-            }
+            } catch (e) { document.getElementById('free-badge').innerText = "⚠️ Reconnecting..."; }
         }
 
         async function fetchNearbyRooms() {
@@ -386,99 +338,38 @@
             if(maxRent) url += `&max_rent=${maxRent}`;
 
             try {
-                let response = await fetch(url);
-                if (!response.ok) return;
-                globalCachedRooms = await response.json();
-                
-                map.eachLayer((layer) => { if (layer instanceof L.Marker) map.removeLayer(layer); });
+                let res = await fetch(url);
+                globalCachedRooms = await res.json();
+                map.eachLayer((l) => { if (l instanceof L.Marker) map.removeLayer(l); });
 
                 globalCachedRooms.forEach(room => {
                     let marker = L.marker([room.latitude, room.longitude]).addTo(map);
-                    let imageUrl = (room.media && room.media[0]) ? room.media[0] : 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af';
-                    if(imageUrl.startsWith('uploads/') || imageUrl.startsWith('static/')) {
-                        imageUrl = `${API_BASE_URL}/${imageUrl}`;
-                    }
-                    
-                    let popupContent = `
-                        <div style="text-align:center; width:180px; font-family:'Plus Jakarta Sans',sans-serif;">
-                            <img src="${imageUrl}" style="width:100%; height:100px; object-fit:cover; border-radius:10px;" onerror="this.src='https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af'">
-                            <h3 style="margin:8px 0 4px 0; font-size:16px; font-weight:800; color:var(--bg-dark);">₹${room.rent}/mo</h3>
-                            <button onclick="launchFullScreenModal('${room.id}')" style="width:100%; padding:8px; background:var(--bg-dark); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700; font-family:inherit; font-size:12px;">🔍 View Details</button>
-                        </div>
-                    `;
-                    marker.bindPopup(popupContent);
+                    marker.bindPopup(`<b>₹${room.rent}/mo</b><br><button onclick="launchFullScreenModal('${room.id}')">View Details</button>`);
                 });
-            } catch (err) { console.log("Failed fetching pins."); }
+            } catch (e) {}
         }
 
         function launchFullScreenModal(roomId) {
             const room = globalCachedRooms.find(r => r.id === roomId);
             if(!room) return;
-
-            let imageUrl = (room.media && room.media[0]) ? room.media[0] : 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af';
-            if(imageUrl.startsWith('uploads/') || imageUrl.startsWith('static/')) {
-                imageUrl = `${API_BASE_URL}/${imageUrl}`;
-            }
-            document.getElementById('modal-img').src = imageUrl;
             document.getElementById('modal-rent').innerText = `₹${room.rent}/mo`;
             document.getElementById('modal-desc').innerText = room.description;
-            
-            const wrapper = document.getElementById('modal-contact-wrapper');
-            wrapper.innerHTML = `<button onclick="setupModalScratchCard('${room.id}')" style="padding:12px 24px; background:#2563eb; color:white; border:none; border-radius:10px; font-weight:700; cursor:pointer; font-family:inherit; font-size:14px;">Reveal Contact Info</button>`;
-
+            document.getElementById('modal-contact-wrapper').innerHTML = `<button onclick="setupModalScratchCard('${room.id}')">Reveal Contact</button>`;
             openModal('details-modal');
         }
 
         async function setupModalScratchCard(roomId) {
             try {
-                let response = await fetch(`${API_BASE_URL}/api/rooms/${roomId}/reveal`, {
+                let res = await fetch(`${API_BASE_URL}/api/rooms/${roomId}/reveal`, {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
-                let data = await response.json();
-                
-                let wrapper = document.getElementById('modal-contact-wrapper');
-                wrapper.innerHTML = `
-                    <div class="scratch-box">
-                        <span>${data.phone}</span>
-                        <canvas id="modal-canvas-${roomId}" class="scratch-canvas" width="220" height="55"></canvas>
-                    </div>
-                    <p style="font-size:13px; color:var(--text-muted); margin:8px 0 0 0;">Scratch card matrix to view Landlord Name: <b style="color:var(--bg-dark);">${data.landlord_name}</b></p>
-                `;
-                initModalCanvas(roomId);
-            } catch (err) { alert("Please login again to reveal contacts."); }
+                let data = await res.json();
+                document.getElementById('modal-contact-wrapper').innerHTML = `<b>Name:</b> ${data.landlord_name} <br> <b>Phone:</b> ${data.phone}`;
+            } catch (e) { alert("Session expired, please re-login."); }
         }
 
-        function initModalCanvas(roomId) {
-            const canvas = document.getElementById(`modal-canvas-${roomId}`);
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#cbd5e1';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#475569';
-            ctx.font = 'bold 11px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('Scratch to Reveal Contact Details 🖐️', 110, 32);
-            
-            let isDrawing = false;
-            function scratch(e) {
-                if (!isDrawing) return;
-                const rect = canvas.getBoundingClientRect();
-                const x = (e.clientX || e.touches[0].clientX) - rect.left;
-                const y = (e.clientY || e.touches[0].clientY) - rect.top;
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.beginPath();
-                ctx.arc(x, y, 15, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            canvas.addEventListener('mousedown', () => isDrawing = true);
-            canvas.addEventListener('mouseup', () => isDrawing = false);
-            canvas.addEventListener('mousemove', scratch);
-            canvas.addEventListener('touchstart', () => isDrawing = true);
-            canvas.addEventListener('touchend', () => isDrawing = false);
-            canvas.addEventListener('touchmove', scratch);
-        }
-        
         async function submitRoom(e) {
-            e.preventDefault();  
+            e.preventDefault();
             const formData = new FormData();
             formData.append('landlord_name', document.getElementById('form_name').value);
             formData.append('phone', document.getElementById('form_phone').value);
@@ -487,43 +378,21 @@
             formData.append('latitude', parseFloat(document.getElementById('form_lat').value));
             formData.append('longitude', parseFloat(document.getElementById('form_lng').value));
             formData.append('description', document.getElementById('form_desc').value);
-            formData.append('amenities', 'WiFi'); 
-            
-            const fileInput = document.getElementById('form_files');
-            if(fileInput.files.length > 0) {
-                formData.append('files', fileInput.files[0]);
-            }
-            
+            formData.append('amenities', 'WiFi');
+            formData.append('files', document.getElementById('form_files').files[0]);
+
             try {
-                let response = await fetch(`${API_BASE_URL}/api/rooms`, {
+                let res = await fetch(`${API_BASE_URL}/api/rooms`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${authToken}` },
                     body: formData
                 });
-                
-                if (response.ok) {
-                    alert("Property successfully published on map!");
-                    closeSidebar();
-                    fetchNearbyRooms();
-                } else {
-                    alert("Failed to publish property. Ensure session is active.");
-                }
-            } catch (err) {
-                alert("Server submission error.");
-            }
+                if(res.ok) { alert("Published!"); closeSidebar(); fetchNearbyRooms(); }
+            } catch(e){}
         }
 
-        function openModal(id) {
-            const modal = document.getElementById(id);
-            modal.style.display = 'flex';
-            setTimeout(() => modal.classList.add('show'), 10);
-        }
-
-        function closeModal(id) {
-            const modal = document.getElementById(id);
-            modal.classList.remove('show');
-            modal.style.display = 'none';
-        }
+        function openModal(id) { document.getElementById(id).classList.add('show'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
     </script>
 </body>
 </html>
