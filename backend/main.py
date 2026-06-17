@@ -1,5 +1,6 @@
 import os
 import time
+import asyncio
 import hashlib
 from typing import List, Optional
 from fastapi import FastAPI, APIRouter, UploadFile, File, Form, HTTPException, Query
@@ -34,15 +35,24 @@ UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
-# 2. DATABASE CONNECTIVITY
-client = AsyncIOMotorClient(MONGO_URL)
+# 2. DATABASE CONNECTIVITY (with timeouts to prevent infinite hangs)
+print(f"Connecting to MongoDB: {MONGO_URL[:25]}..." if len(MONGO_URL) > 25 else f"Connecting to MongoDB: {MONGO_URL}")
+client = AsyncIOMotorClient(
+    MONGO_URL,
+    serverSelectionTimeoutMS=5000,   # Fail in 5s if server unreachable
+    connectTimeoutMS=5000,           # Fail in 5s if connection can't be made
+    socketTimeoutMS=10000            # Fail in 10s if a socket operation stalls
+)
 db = client["roomfinder_db"]
 
 @app.on_event("startup")
 async def startup_db_client():
-    import asyncio
     async def init_db_indexes():
         try:
+            # Quick ping to verify MongoDB is reachable
+            await client.admin.command('ping')
+            print("MongoDB PING successful — database is reachable!")
+            
             # Create a 2dsphere index for high-speed geospatial location lookups
             await db["rooms"].create_index([("location", "2dsphere")])
             
@@ -53,39 +63,74 @@ async def startup_db_client():
                 
             print("MongoDB connected, 2dsphere index ensured successfully!")
         except Exception as e:
-            print(f"Database connection error: {e}")
+            print(f"DATABASE CONNECTION ERROR: {e}")
+            print(f"MONGO_URL being used: {MONGO_URL[:30]}...")
             
     asyncio.create_task(init_db_indexes())
+
+# Health check endpoint to verify DB connectivity
+@app.get("/health")
+async def health_check():
+    try:
+        await asyncio.wait_for(client.admin.command('ping'), timeout=5.0)
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        return {"status": "unhealthy", "database": "disconnected", "error": str(e)}
 
 # --- API ROUTES ---
 
 @app.post("/api/auth/signup")
 async def signup(user: UserSignup):
-    # Check if user already exists
-    existing_user = await db["users"].find_one({"username": user.username})
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Username already exists")
-    
-    hashed_password = hashlib.sha256(user.password.encode()).hexdigest()
-    await db["users"].insert_one({
-        "username": user.username,
-        "password": hashed_password
-    })
-    return {"message": "Signup successful!"}
+    try:
+        # Check if user already exists (with 10s timeout)
+        existing_user = await asyncio.wait_for(
+            db["users"].find_one({"username": user.username}), timeout=10.0
+        )
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Username already exists")
+        
+        hashed_password = hashlib.sha256(user.password.encode()).hexdigest()
+        await asyncio.wait_for(
+            db["users"].insert_one({
+                "username": user.username,
+                "password": hashed_password
+            }), timeout=10.0
+        )
+        return {"message": "Signup successful!"}
+    except asyncio.TimeoutError:
+        print("SIGNUP TIMEOUT: MongoDB query took too long!")
+        raise HTTPException(status_code=503, detail="Database is not responding. Please try again in a moment.")
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"SIGNUP ERROR: {e}")
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
 
 @app.post("/api/auth/login")
 async def login(username: str = Form(...), password: str = Form(...)):
-    user = await db["users"].find_one({"username": username})
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid username or password")
-    
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    if user["password"] != hashed_password:
-        raise HTTPException(status_code=400, detail="Invalid username or password")
-    
-    # Generate a dummy token or a simple token
-    token = f"dummy-token-{username}"
-    return {"access_token": token, "token_type": "bearer"}
+    try:
+        # Query with 10s timeout to prevent infinite hang
+        user = await asyncio.wait_for(
+            db["users"].find_one({"username": username}), timeout=10.0
+        )
+        if not user:
+            raise HTTPException(status_code=400, detail="Invalid username or password")
+        
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+        if user["password"] != hashed_password:
+            raise HTTPException(status_code=400, detail="Invalid username or password")
+        
+        # Generate a dummy token or a simple token
+        token = f"dummy-token-{username}"
+        return {"access_token": token, "token_type": "bearer"}
+    except asyncio.TimeoutError:
+        print("LOGIN TIMEOUT: MongoDB query took too long!")
+        raise HTTPException(status_code=503, detail="Database is not responding. Please try again in a moment.")
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"LOGIN ERROR: {e}")
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
 
 # 1. Post a Room with Multi-File Upload (Images/Videos)
 @app.post("/api/rooms", response_model=dict)

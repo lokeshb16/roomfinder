@@ -407,29 +407,41 @@
             const username = document.getElementById('auth_username').value;
             const password = document.getElementById('auth_password').value;
 
+            // 20-second timeout so UI never freezes forever
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
+
             try {
-                console.log("Sending request to:", BACKEND_URL);
+                const signupUrl = `${BACKEND_URL}/api/auth/signup`;
+                const loginUrl = `${BACKEND_URL}/api/auth/login`;
+                const targetUrl = isSignUpMode ? signupUrl : loginUrl;
+                console.log("Sending request to:", targetUrl);
+
                 let response;
                 if (isSignUpMode) {
-                    // Sign up pipeline logic
-                    response = await fetch(`${BACKEND_URL}/api/auth/signup`, {
+                    response = await fetch(signupUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username: username, password: password })
+                        body: JSON.stringify({ username: username, password: password }),
+                        signal: controller.signal
                     });
                 } else {
-                    // Standard explicit login logic using FormData
                     let loginData = new FormData();
                     loginData.append('username', username);
                     loginData.append('password', password);
 
-                    response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+                    response = await fetch(loginUrl, {
                         method: 'POST',
-                        body: loginData
+                        body: loginData,
+                        signal: controller.signal
                     });
                 }
 
+                clearTimeout(timeoutId);
+                console.log("Response status:", response.status);
+
                 let data = await response.json();
+                console.log("Response data:", data);
 
                 if (response.ok) {
                     if (isSignUpMode) {
@@ -441,11 +453,16 @@
                         bypassAuthScreen();
                     }
                 } else {
-                    alert(data.detail || "Authentication engine threw an error. User might not exist.");
+                    alert(data.detail || "Authentication error. Please check your credentials.");
                 }
             } catch (err) {
+                clearTimeout(timeoutId);
                 console.error("Login failed:", err);
-                alert("Server is waking up from a deep sleep (Cold Start). Please click OK and press Sign In again.");
+                if (err.name === 'AbortError') {
+                    alert("Request timed out (20s). The server may be starting up. Please try again in 30 seconds.");
+                } else {
+                    alert("Could not reach the server. It may be waking up (cold start). Please try again in 30 seconds.");
+                }
             } finally {
                 btn.innerText = isSignUpMode ? "Sign Up" : "Sign In";
                 btn.disabled = false;
