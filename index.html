@@ -408,6 +408,7 @@
             const password = document.getElementById('auth_password').value;
 
             try {
+                console.log("Sending request to:", BACKEND_URL);
                 let response;
                 if (isSignUpMode) {
                     // Sign up pipeline logic
@@ -417,14 +418,14 @@
                         body: JSON.stringify({ username: username, password: password })
                     });
                 } else {
-                    // Standard explicit login logic using raw FormData body structure
+                    // Standard explicit login logic using FormData
                     let loginData = new FormData();
                     loginData.append('username', username);
                     loginData.append('password', password);
 
                     response = await fetch(`${BACKEND_URL}/api/auth/login`, {
                         method: 'POST',
-                        body: loginData  // Pura framework structure standard layout standard input form pe shift kar diya
+                        body: loginData
                     });
                 }
 
@@ -443,6 +444,7 @@
                     alert(data.detail || "Authentication engine threw an error. User might not exist.");
                 }
             } catch (err) {
+                console.error("Login failed:", err);
                 alert("Server is waking up from a deep sleep (Cold Start). Please click OK and press Sign In again.");
             } finally {
                 btn.innerText = isSignUpMode ? "Sign Up" : "Sign In";
