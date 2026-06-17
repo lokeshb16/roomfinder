@@ -1,5 +1,6 @@
 import os
 import time
+import hashlib
 from typing import List, Optional
 from fastapi import FastAPI, APIRouter, UploadFile, File, Form, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,9 +10,13 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 from bson import ObjectId
 
+class UserSignup(BaseModel):
+    username: str
+    password: str
+
 # 1. SETUP & CONFIGURATION
 load_dotenv()
-MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
+MONGO_URL = os.getenv("MONGO_URL") or os.getenv("MONGO_URI") or "mongodb://localhost:27017"
 
 app = FastAPI(title="RoomFinder API", description="Hyperlocal No-Brokerage Room Rental Platform")
 
@@ -49,6 +54,34 @@ async def startup_db_client():
         print(f"Database connection error: {e}")
 
 # --- API ROUTES ---
+
+@app.post("/api/auth/signup")
+async def signup(user: UserSignup):
+    # Check if user already exists
+    existing_user = await db["users"].find_one({"username": user.username})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    
+    hashed_password = hashlib.sha256(user.password.encode()).hexdigest()
+    await db["users"].insert_one({
+        "username": user.username,
+        "password": hashed_password
+    })
+    return {"message": "Signup successful!"}
+
+@app.post("/api/auth/login")
+async def login(username: str = Form(...), password: str = Form(...)):
+    user = await db["users"].find_one({"username": username})
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid username or password")
+    
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+    if user["password"] != hashed_password:
+        raise HTTPException(status_code=400, detail="Invalid username or password")
+    
+    # Generate a dummy token or a simple token
+    token = f"dummy-token-{username}"
+    return {"access_token": token, "token_type": "bearer"}
 
 # 1. Post a Room with Multi-File Upload (Images/Videos)
 @app.post("/api/rooms", response_model=dict)

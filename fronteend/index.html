@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RoomFinder Pro - Live Geospatial Portal</title>
-    
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <style>
         :root {
             --brand-primary: #10b981;
@@ -20,9 +22,12 @@
             --smooth-shadow: 0 10px 30px -5px rgba(2, 6, 23, 0.1), 0 4px 12px -4px rgba(2, 6, 23, 0.05);
         }
 
-        body, html {
-            margin: 0; padding: 0;
-            width: 100%; height: 100%;
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
             font-family: 'Plus Jakarta Sans', Arial, sans-serif;
             background: #f8fafc;
             color: var(--text-main);
@@ -31,122 +36,276 @@
 
         /* PREMIUM GLASSMORPHISM AUTH SCREEN */
         #auth-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-            z-index: 99999; display: flex; align-items: center; justify-content: center;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .auth-container {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 40px; border-radius: 24px; width: 380px;
+            padding: 40px;
+            border-radius: 24px;
+            width: 380px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            text-align: center; color: white;
+            text-align: center;
+            color: white;
         }
 
         .auth-input {
-            width: 100%; padding: 14px 16px; margin-top: 12px;
+            width: 100%;
+            padding: 14px 16px;
+            margin-top: 12px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px; box-sizing: border-box;
-            color: white; font-family: inherit; font-size: 14px; outline: none;
+            border-radius: 12px;
+            box-sizing: border-box;
+            color: white;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
         }
-        .auth-input:focus { border-color: var(--brand-primary); background: rgba(255, 255, 255, 0.08); }
+
+        .auth-input:focus {
+            border-color: var(--brand-primary);
+            background: rgba(255, 255, 255, 0.08);
+        }
 
         .auth-btn {
-            width: 100%; padding: 14px; background: var(--brand-primary);
-            color: white; border: none; border-radius: 12px; font-weight: 700;
-            font-size: 15px; cursor: pointer; margin-top: 24px; font-family: inherit;
+            width: 100%;
+            padding: 14px;
+            background: var(--brand-primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 24px;
+            font-family: inherit;
             box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4);
         }
-        .auth-btn:hover { background: var(--brand-primary-hover); }
+
+        .auth-btn:hover {
+            background: var(--brand-primary-hover);
+        }
 
         .auth-toggle {
-            margin-top: 16px; font-size: 13px; color: #94a3b8; cursor: pointer;
+            margin-top: 16px;
+            font-size: 13px;
+            color: #94a3b8;
+            cursor: pointer;
         }
-        .auth-toggle span { color: var(--brand-primary); font-weight: 600; }
+
+        .auth-toggle span {
+            color: var(--brand-primary);
+            font-weight: 600;
+        }
 
         /* MAIN APPLICATION SCREEN */
         #app-interface {
-            display: none; width: 100%; height: 100%;
+            display: none;
+            width: 100%;
+            height: 100%;
         }
 
-        #map { flex: 1; height: 100%; z-index: 1; }
+        #map {
+            flex: 1;
+            height: 100%;
+            z-index: 1;
+        }
 
         #header-bar {
-            position: absolute; top: 20px; left: 20px; right: 20px; z-index: 1000;
-            background: white; padding: 12px 24px; border-radius: 40px;
-            box-shadow: var(--smooth-shadow); display: flex; justify-content: space-between; align-items: center;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            box-shadow: var(--smooth-shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             border: 1px solid rgba(226, 232, 240, 0.8);
         }
 
-        .header-left { display: flex; align-items: center; gap: 16px; }
-        .header-right { display: flex; align-items: center; gap: 12px; }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
         #free-badge {
-            background: #dcfce7; color: #15803d; padding: 6px 14px;
-            border-radius: 30px; font-size: 12px; font-weight: 700;
+            background: #dcfce7;
+            color: #15803d;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 700;
         }
 
         #sidebar-toggle-btn {
-            position: absolute; bottom: 30px; right: 30px; z-index: 1000;
-            background: var(--brand-primary); color: white; border: none;
-            padding: 16px 28px; border-radius: 40px; font-weight: 700;
-            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4); cursor: pointer;
-            display: flex; align-items: center; gap: 8px; font-family: inherit; font-size: 15px;
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            background: var(--brand-primary);
+            color: white;
+            border: none;
+            padding: 16px 28px;
+            border-radius: 40px;
+            font-weight: 700;
+            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+            font-size: 15px;
         }
 
         #sidebar {
-            width: 400px; height: 100%; background: white;
-            position: absolute; right: -400px; top: 0; z-index: 1001;
+            width: 400px;
+            height: 100%;
+            background: white;
+            position: absolute;
+            right: -400px;
+            top: 0;
+            z-index: 1001;
             box-shadow: -10px 0 40px rgba(15, 23, 42, 0.08);
-            padding: 100px 30px 30px 30px; box-sizing: border-box;
-            overflow-y: auto; transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 100px 30px 30px 30px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        #sidebar.open { right: 0; }
+
+        #sidebar.open {
+            right: 0;
+        }
 
         .sidebar-close-btn {
-            position: absolute; top: 105px; right: 30px; background: #f1f5f9;
-            border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+            position: absolute;
+            top: 105px;
+            right: 30px;
+            background: #f1f5f9;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
         }
 
-        form label { font-size: 13px; font-weight: 600; color: #475569; display: block; margin-top: 14px; }
-        form input, form textarea {
-            width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1;
-            border-radius: 10px; box-sizing: border-box; margin-top: 6px; font-size: 14px;
+        form label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            display: block;
+            margin-top: 14px;
         }
-        
+
+        form input,
+        form textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            box-sizing: border-box;
+            margin-top: 6px;
+            font-size: 14px;
+        }
+
         .publish-btn {
-            width: 100%; padding: 14px; background: var(--brand-primary); color: white;
-            font-weight: 700; border: none; border-radius: 12px; cursor: pointer; margin-top: 25px;
+            width: 100%;
+            padding: 14px;
+            background: var(--brand-primary);
+            color: white;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 25px;
         }
 
         .app-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);
-            z-index: 10005; display: none; align-items: center; justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 10005;
+            display: none;
+            align-items: center;
+            justify-content: center;
         }
-        .app-modal.show { display: flex; }
-        .modal-content { background: white; width: 600px; max-width: 92%; border-radius: 24px; overflow: hidden; position: relative; }
-        .modal-close-btn { position: absolute; top: 20px; right: 20px; background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; }
-        .modal-hero-img { width: 100%; height: 300px; object-fit: cover; }
-        .modal-body { padding: 30px; }
+
+        .app-modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            width: 600px;
+            max-width: 92%;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #f1f5f9;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .modal-hero-img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
     </style>
 </head>
+
 <body>
 
     <div id="auth-screen">
         <div class="auth-container">
             <h2 id="auth-title">Welcome Back</h2>
             <p id="auth-subtitle">Sign in to access your room panel</p>
-            
+
             <form id="authForm" onsubmit="handleAuthSubmit(event)">
                 <input type="text" id="auth_username" class="auth-input" required placeholder="Username or Phone">
                 <input type="password" id="auth_password" class="auth-input" required placeholder="Password">
                 <button type="submit" id="auth-submit-btn" class="auth-btn">Sign In</button>
             </form>
-            
+
             <div class="auth-toggle" onclick="toggleAuthMode()">
                 Don't have an account? <span id="auth-toggle-text">Sign Up</span>
             </div>
@@ -160,9 +319,12 @@
                 <span id="free-badge">Connecting Backend...</span>
             </div>
             <div class="header-right">
-                <input type="number" id="budgetInput" placeholder="Max Rent (₹)" style="padding: 8px 14px; border-radius: 30px; border: 1px solid #cbd5e1; width: 110px; text-align: center; outline:none;">
-                <button onclick="fetchNearbyRooms()" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; font-weight:700;">Filter</button>
-                <button onclick="handleLogout()" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; font-weight:700;">Logout</button>
+                <input type="number" id="budgetInput" placeholder="Max Rent (₹)"
+                    style="padding: 8px 14px; border-radius: 30px; border: 1px solid #cbd5e1; width: 110px; text-align: center; outline:none;">
+                <button onclick="fetchNearbyRooms()"
+                    style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; font-weight:700;">Filter</button>
+                <button onclick="handleLogout()"
+                    style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; font-weight:700;">Logout</button>
             </div>
         </div>
 
@@ -175,8 +337,9 @@
         <div id="sidebar">
             <button class="sidebar-close-btn" onclick="closeSidebar()">✕</button>
             <h3 style="margin:0 0 6px 0; font-size:22px; font-weight:800;">List Your Room 🎉</h3>
-            <p style="font-size: 13px; color: var(--text-muted); margin:0 0 20px 0;">Click anywhere on the map to autofill coordinates.</p>
-            
+            <p style="font-size: 13px; color: var(--text-muted); margin:0 0 20px 0;">Click anywhere on the map to
+                autofill coordinates.</p>
+
             <form id="roomForm" onsubmit="submitRoom(event)">
                 <label>Landlord Name</label>
                 <input type="text" id="form_name" required placeholder="e.g. Rajesh Kumar">
@@ -215,16 +378,16 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        const API_BASE_URL = "https://roomfinder-backend-t7b8.onrender.com";
+        const BACKEND_URL = 'https://roomfinder-backend.onrender.com';
         const NAGPUR_LAT = 21.1458;
         const NAGPUR_LNG = 79.0882;
-        
+
         let map;
         let globalCachedRooms = [];
         let isSignUpMode = false;
         let authToken = localStorage.getItem('token') || null;
 
-        window.onload = function() {
+        window.onload = function () {
             if (authToken) { bypassAuthScreen(); }
         };
 
@@ -248,7 +411,7 @@
                 let response;
                 if (isSignUpMode) {
                     // Sign up pipeline logic
-                    response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+                    response = await fetch(`${BACKEND_URL}/api/auth/signup`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username: username, password: password })
@@ -259,7 +422,7 @@
                     loginData.append('username', username);
                     loginData.append('password', password);
 
-                    response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                    response = await fetch(`${BACKEND_URL}/api/auth/login`, {
                         method: 'POST',
                         body: loginData  // Pura framework structure standard layout standard input form pe shift kar diya
                     });
@@ -303,7 +466,7 @@
             if (map) return;
             map = L.map('map', { zoomControl: false }).setView([NAGPUR_LAT, NAGPUR_LNG], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            map.on('click', function(e) {
+            map.on('click', function (e) {
                 document.getElementById('form_lat').value = e.latlng.lat.toFixed(6);
                 document.getElementById('form_lng').value = e.latlng.lng.toFixed(6);
                 openSidebar();
@@ -312,7 +475,7 @@
 
         async function loadStats() {
             try {
-                let res = await fetch(`${API_BASE_URL}/api/stats`);
+                let res = await fetch(`${BACKEND_URL}/api/stats`);
                 let data = await res.json();
                 document.getElementById('free-badge').innerText = `🎉 ${data.remaining_free_slots} Free Slots Left!`;
             } catch (e) { document.getElementById('free-badge').innerText = "⚠️ Reconnecting..."; }
@@ -320,8 +483,8 @@
 
         async function fetchNearbyRooms() {
             let maxRent = document.getElementById('budgetInput').value;
-            let url = `${API_BASE_URL}/api/rooms/nearby?lat=${NAGPUR_LAT}&lng=${NAGPUR_LNG}&radius_km=25`;
-            if(maxRent) url += `&max_rent=${maxRent}`;
+            let url = `${BACKEND_URL}/api/rooms/nearby?lat=${NAGPUR_LAT}&lng=${NAGPUR_LNG}&radius_km=25`;
+            if (maxRent) url += `&max_rent=${maxRent}`;
 
             try {
                 let res = await fetch(url);
@@ -332,12 +495,12 @@
                     let marker = L.marker([room.latitude, room.longitude]).addTo(map);
                     marker.bindPopup(`<b>₹${room.rent}/mo</b><br><button onclick="launchFullScreenModal('${room.id}')">View Details</button>`);
                 });
-            } catch (e) {}
+            } catch (e) { }
         }
 
         function launchFullScreenModal(roomId) {
             const room = globalCachedRooms.find(r => r.id === roomId);
-            if(!room) return;
+            if (!room) return;
             document.getElementById('modal-rent').innerText = `₹${room.rent}/mo`;
             document.getElementById('modal-desc').innerText = room.description;
             document.getElementById('modal-contact-wrapper').innerHTML = `<button onclick="setupModalScratchCard('${room.id}')">Reveal Contact</button>`;
@@ -346,7 +509,7 @@
 
         async function setupModalScratchCard(roomId) {
             try {
-                let res = await fetch(`${API_BASE_URL}/api/rooms/${roomId}/reveal`, {
+                let res = await fetch(`${BACKEND_URL}/api/rooms/${roomId}/reveal`, {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
                 let data = await res.json();
@@ -368,17 +531,18 @@
             formData.append('files', document.getElementById('form_files').files[0]);
 
             try {
-                let res = await fetch(`${API_BASE_URL}/api/rooms`, {
+                let res = await fetch(`${BACKEND_URL}/api/rooms`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${authToken}` },
                     body: formData
                 });
-                if(res.ok) { alert("Published!"); closeSidebar(); fetchNearbyRooms(); }
-            } catch(e){}
+                if (res.ok) { alert("Published!"); closeSidebar(); fetchNearbyRooms(); }
+            } catch (e) { }
         }
 
         function openModal(id) { document.getElementById(id).classList.add('show'); }
         function closeModal(id) { document.getElementById(id).classList.remove('show'); }
     </script>
 </body>
+
 </html>
