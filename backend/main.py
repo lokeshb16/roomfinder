@@ -40,18 +40,22 @@ db = client["roomfinder_db"]
 
 @app.on_event("startup")
 async def startup_db_client():
-    try:
-        # Create a 2dsphere index for high-speed geospatial location lookups
-        await db["rooms"].create_index([("location", "2dsphere")])
-        
-        # Initialize counter for global stats if it doesn't exist yet
-        counter = await db["counters"].find_one({"_id": "room_counter"})
-        if not counter:
-            await db["counters"].insert_one({"_id": "room_counter", "count": 0})
+    import asyncio
+    async def init_db_indexes():
+        try:
+            # Create a 2dsphere index for high-speed geospatial location lookups
+            await db["rooms"].create_index([("location", "2dsphere")])
             
-        print("MongoDB connected, 2dsphere index ensured successfully!")
-    except Exception as e:
-        print(f"Database connection error: {e}")
+            # Initialize counter for global stats if it doesn't exist yet
+            counter = await db["counters"].find_one({"_id": "room_counter"})
+            if not counter:
+                await db["counters"].insert_one({"_id": "room_counter", "count": 0})
+                
+            print("MongoDB connected, 2dsphere index ensured successfully!")
+        except Exception as e:
+            print(f"Database connection error: {e}")
+            
+    asyncio.create_task(init_db_indexes())
 
 # --- API ROUTES ---
 
